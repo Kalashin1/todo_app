@@ -1,0 +1,47 @@
+{
+  "id": "duskwork",
+  "name": "Duskwork",
+  "description": "Indigo focus with a soft twilight glow",
+  "fonts": {
+    "heading": "'Manrope', sans-serif",
+    "body": "'Manrope', sans-serif",
+    "mono": "'IBM Plex Mono', monospace",
+    "googleFonts": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap"
+  },
+  "radius": "1rem",
+  "iconStroke": 1.75,
+  "icons": {
+    "add": "<circle cx='12' cy='12' r='9'/><path d='M12 8v8M8 12h8'/>",
+    "box": "<rect x='4' y='4' width='16' height='16' rx='5'/>",
+    "boxChecked": "<rect x='4' y='4' width='16' height='16' rx='5'/><path d='M8 12.5l2.5 2.5 5.5-6'/>",
+    "trash": "<path d='M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 10v7M14 10v7'/>",
+    "edit": "<path d='M4 20l4.5-1 10-10-3.5-3.5-10 10L4 20zM13.5 6.5l3.5 3.5'/>",
+    "sun": "<circle cx='12' cy='12' r='3.5'/><path d='M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4'/>",
+    "moon": "<path d='M19.5 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10 10.5z'/>",
+    "palette": "<circle cx='12' cy='12' r='9'/><circle cx='8.5' cy='9.5' r='1.2'/><circle cx='12' cy='7.5' r='1.2'/><circle cx='15.5' cy='9.5' r='1.2'/><circle cx='13' cy='14' r='1.2'/>",
+    "close": "<path d='M7 7l10 10M17 7L7 17'/>",
+    "trashSmall": "<path d='M6 7h12M9 7V5h6v2M8 7l1 12h6l1-12M10.5 10v6M13.5 10v6'/>"
+  },
+  "modes": {
+    "light": {
+      "surface": "#F7F7FB",
+      "surface2": "#ECEEF8",
+      "ink": "#17182B",
+      "muted": "#64677A",
+      "accent": "#4F46E5",
+      "accentHover": "#4338CA",
+      "accentInk": "#FFFFFF",
+      "line": "rgba(23,24,43,0.16)"
+    },
+    "dark": {
+      "surface": "#11101B",
+      "surface2": "#1B1929",
+      "ink": "#F4F1FF",
+      "muted": "#AAA5BF",
+      "accent": "#A78BFA",
+      "accentHover": "#C4B5FD",
+      "accentInk": "#171222",
+      "line": "rgba(244,241,255,0.16)"
+    }
+  }
+}

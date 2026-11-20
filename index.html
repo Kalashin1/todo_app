@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monotask – Themeable Todo</title>
+<meta name="description" content="A todo app whose colors, fonts and icons are fully driven by JSON or YAML themes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  colors: { surface: 'var(--surface)', surface2: 'var(--surface2)', ink: 'var(--ink)', muted: 'var(--muted)', accent: 'var(--accent)', accentHover: 'var(--accent-hover)', accentInk: 'var(--accent-ink)', line: 'var(--line)' },
+  fontFamily: { heading: ['var(--font-heading)'], body: ['var(--font-body)'], mono: ['var(--font-mono)'] },
+  borderRadius: { theme: 'var(--radius)' }
+}}};
+</script>
+<style>
+:root{--surface:#fff;--surface2:#f5f5f5;--ink:#000;--muted:#595959;--accent:#000;--accent-hover:#333;--accent-ink:#fff;--line:rgba(0,0,0,.18);--radius:.75rem;--font-heading:system-ui,sans-serif;--font-body:system-ui,sans-serif;--font-mono:ui-monospace,monospace;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--surface);color:var(--ink);font-family:var(--font-body);transition:background .25s,color .25s}
+::selection{background:var(--accent);color:var(--accent-ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.rise{animation:rise .3s ease both}
+.drawer{transition:transform .3s ease}
+.done-text{text-decoration:line-through;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.rise,.drawer{animation:none;transition:none}}
+</style>
+</head>
+<body class="min-h-screen font-body antialiased">
+
+<header id="navbar" data-section="navbar" class="sticky top-0 z-20 bg-surface/90 backdrop-blur border-b border-line">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="#" class="font-heading text-xl font-bold tracking-tight" aria-label="Monotask home">Monotask<span class="text-muted">.</span></a>
+    <nav class="flex items-center gap-2" aria-label="Preferences">
+      <button data-action="toggle-mode" class="p-2 rounded-theme border border-line hover:bg-surface2" aria-label="Toggle black and white mode"><span data-mode-icon></span></button>
+      <button data-action="toggle-studio" class="flex items-center gap-2 px-3 py-2 rounded-theme bg-accent text-accentInk hover:bg-accentHover text-sm font-semibold" aria-expanded="false" aria-controls="theme-studio"><span data-icon="palette"></span>Themes</button>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 sm:px-6">
+  <section id="composer" data-section="composer" class="py-12 md:py-20">
+    <p class="font-mono text-xs uppercase tracking-widest text-muted mb-3" id="today"></p>
+    <h1 class="font-heading text-4xl md:text-6xl font-bold tracking-tight leading-[1.05]">What needs doing?</h1>
+    <div class="mt-8 flex gap-2" role="group" aria-label="Add a task">
+      <input id="new-task" type="text" autocomplete="off" placeholder="Write a task and press Enter" class="flex-1 min-w-0 px-4 py-3 rounded-theme bg-surface2 border border-line placeholder:text-muted" aria-label="New task">
+      <button data-action="add" class="px-4 py-3 rounded-theme bg-accent text-accentInk hover:bg-accentHover font-semibold flex items-center gap-2" aria-label="Add task"><span data-icon="add"></span><span class="hidden sm:inline">Add</span></button>
+    </div>
+  </section>
+
+  <section id="task-list" data-section="task-list" class="pb-16 md:pb-24" aria-label="Tasks">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div class="flex gap-1" role="tablist" aria-label="Filter tasks" id="filters"></div>
+      <div class="flex items-center gap-4 text-sm text-muted font-mono"><span id="count"></span><button data-action="clear-done" class="underline underline-offset-4 hover:text-ink">Clear done</button></div>
+    </div>
+    <ul id="list" class="border border-line rounded-theme divide-y divide-[var(--line)] bg-surface2 overflow-hidden"></ul>
+  </section>
+</main>
+
+<aside id="theme-studio" data-section="theme-studio" class="drawer fixed top-0 right-0 z-30 h-full w-full max-w-md bg-surface text-ink border-l border-line translate-x-full overflow-y-auto" style="padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)" aria-label="Theme studio" aria-hidden="true">
+  <div class="p-6 space-y-8">
+    <div class="flex items-center justify-between">
+      <h2 class="font-heading text-2xl font-bold">Theme studio</h2>
+      <button data-action="toggle-studio" class="p-2 rounded-theme border border-line hover:bg-surface2" aria-label="Close theme studio"><span data-icon="close"></span></button>
+    </div>
+    <div>
+      <h3 class="font-mono text-xs uppercase tracking-widest text-muted mb-3">Installed themes</h3>
+      <ul id="theme-list" class="space-y-2"></ul>
+    </div>
+    <div>
+      <h3 class="font-mono text-xs uppercase tracking-widest text-muted mb-3">Install a theme</h3>
+      <p class="text-sm text-muted mb-3">Paste JSON or YAML (a single theme, or a list), or upload a .json / .yaml file.</p>
+      <textarea id="theme-input" rows="9" spellcheck="false" class="w-full p-3 rounded-theme bg-surface2 border border-line font-mono text-xs" aria-label="Theme JSON or YAML"></textarea>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <button data-action="install" class="px-4 py-2 rounded-theme bg-accent text-accentInk hover:bg-accentHover text-sm font-semibold">Install</button>
+        <button data-action="template" class="px-4 py-2 rounded-theme border border-line hover:bg-surface2 text-sm">Load template</button>
+        <label class="px-4 py-2 rounded-theme border border-line hover:bg-surface2 text-sm cursor-pointer">Upload file<input id="theme-file" type="file" accept=".json,.yaml,.yml,application/json" class="sr-only"></label>
+      </div>
+      <p id="theme-status" class="mt-3 text-sm min-h-[1.25rem]" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+</aside>
+
+<footer id="footer" data-section="footer" class="border-t border-line py-8 text-center text-sm text-muted">Saved locally in your browser · Themes are plain JSON or YAML</footer>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const root = document.documentElement;
+const ICONS = {
+  add:'<path d="M12 5v14M5 12h14"/>',
+  box:'<rect x="4" y="4" width="16" height="16" rx="4"/>',
+  boxChecked:'<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12.5l3 3 5-6"/>',
+  trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  palette:'<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="15.5" cy="10" r="1"/>',
+  close:'<path d="M6 6l12 12M18 6L6 18"/>',
+  trashSmall:'<path d="M5 7h14M7 7l1 12h8l1-12M10 7V5h4v2"/>'
+};
+const BASE = {
+  id:'mono', name:'Mono', description:'Pure black and white.',
+  fonts:{ heading:'"Space Grotesk", system-ui, sans-serif', body:'"Inter", system-ui, sans-serif', mono:'"JetBrains Mono", ui-monospace, monospace',
+    googleFonts:'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap' },
+  radius:'0.75rem', iconStroke:1.75, icons:ICONS,
+  modes:{
+    light:{ surface:'#FFFFFF', surface2:'#F5F5F5', ink:'#000000', muted:'#595959', accent:'#000000', accentHover:'#333333', accentInk:'#FFFFFF', line:'rgba(0,0,0,0.18)' },
+    dark:{ surface:'#000000', surface2:'#0D0D0D', ink:'#FFFFFF', muted:'#A3A3A3', accent:'#FFFFFF', accentHover:'#D4D4D4', accentInk:'#000000', line:'rgba(255,255,255,0.2)' }
+  }
+};
+const BUILTIN = [
+  BASE,
+  { id:'paper', name:'Paper', description:'Warm serif, soft corners.',
+    fonts:{ heading:'"Fraunces", Georgia, serif', body:'"Source Sans 3", system-ui, sans-serif', mono:'"IBM Plex Mono", monospace',
+      googleFonts:'https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=IBM+Plex+Mono&family=Source+Sans+3:wght@400;600&display=swap' },
+    radius:'0.25rem', iconStroke:1.5,
+    modes:{
+      light:{ surface:'#FBF6EC', surface2:'#F1E8D6', ink:'#2B2118', muted:'#6B5B49', accent:'#9A3412', accentHover:'#7C2A0E', accentInk:'#FFFFFF', line:'rgba(43,33,24,0.2)' },
+      dark:{ surface:'#1A140E', surface2:'#241C14', ink:'#F4EBDD', muted:'#B3A28C', accent:'#F59E5B', accentHover:'#FDBA85', accentInk:'#1A140E', line:'rgba(244,235,221,0.18)' } } },
+  { id:'terminal', name:'Terminal', description:'Monospace, square icons, green phosphor.',
+    fonts:{ heading:'"IBM Plex Mono", monospace', body:'"IBM Plex Mono", monospace', mono:'"IBM Plex Mono", monospace',
+      googleFonts:'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap' },
+    radius:'0rem', iconStroke:2.5,
+    icons:{ box:'<rect x="4" y="4" width="16" height="16"/>', boxChecked:'<rect x="4" y="4" width="16" height="16"/><path d="M7 12l4 4 6-8"/>', add:'<path d="M12 4v16M4 12h16"/>' },
+    modes:{
+      light:{ surface:'#F2FFF2', surface2:'#E0F5E0', ink:'#052E05', muted:'#2F5F2F', accent:'#0A5C0A', accentHover:'#064006', accentInk:'#F2FFF2', line:'rgba(5,46,5,0.3)' },
+      dark:{ surface:'#030803', surface2:'#07120A', ink:'#4ADE80', muted:'#4F9F6A', accent:'#4ADE80', accentHover:'#86EFAC', accentInk:'#030803', line:'rgba(74,222,128,0.3)' } } }
+];
+const TEMPLATE = {
+  id:'sunset', name:'Sunset', description:'My custom theme',
+  fonts:{ heading:'"Syne", sans-serif', body:'"DM Sans", sans-serif', googleFonts:'https://fonts.googleapis.com/css2?family=DM+Sans&family=Syne:wght@700&display=swap' },
+  radius:'1.25rem', iconStroke:2,
+  icons:{ add:'<path d="M12 5v14M5 12h14"/>' },
+  modes:{
+    light:{ surface:'#FFF7F0', surface2:'#FFE9D6', ink:'#2A1205', muted:'#7A4A2E', accent:'#C2410C', accentHover:'#9A3412', accentInk:'#FFFFFF', line:'rgba(42,18,5,0.2)' },
+    dark:{ surface:'#1C0B04', surface2:'#2A1308', ink:'#FFE8D6', muted:'#D9A27F', accent:'#FB923C', accentHover:'#FDBA74', accentInk:'#1C0B04', line:'rgba(255,232,214,0.2)' } }
+};
+
+const defaults = { todos:[], themeId:'mono', mode:null, custom:[], filter:'all' };
+let S = Object.assign({}, defaults);
+const load = () => { try { Object.assign(S, JSON.parse(localStorage.getItem('todo.v1') || '{}')); } catch (e) {} };
+const save = () => { try { localStorage.setItem('todo.v1', JSON.stringify(S)); } catch (e) {} };
+let editingId = null, ICON_SET = ICONS, STROKE = 1.75;
+
+const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+const merge = (a, b) => { const o = Object.assign({}, a); for (const k in (b || {})) o[k] = isObj(b[k]) && isObj(a[k]) ? merge(a[k], b[k]) : b[k]; return o; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const allThemes = () => BUILTIN.concat(S.custom);
+const resolve = id => merge(BASE, allThemes().find(t => t.id === id) || BASE);
+const mode = () => S.mode || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+/* ---- Icon sanitizer: only simple SVG shapes and geometry attributes survive ---- */
+const OK_TAGS = new Set(['path','circle','rect','line','polyline','polygon','ellipse','g']);
+const OK_ATTR = new Set(['d','cx','cy','r','rx','ry','x','y','x1','y1','x2','y2','width','height','points','transform','fill','stroke-width','opacity']);
+function cleanIcon(markup) {
+  try {
+    const doc = new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg">' + markup + '</svg>', 'image/svg+xml');
+    if (doc.querySelector('parsererror')) return null;
+    const walk = n => { [...n.children].forEach(c => { if (!OK_TAGS.has(c.localName)) return c.remove(); [...c.attributes].forEach(a => { if (!OK_ATTR.has(a.name)) c.removeAttribute(a.name); }); walk(c); }); };
+    walk(doc.documentElement);
+    return doc.documentElement.innerHTML;
+  } catch (e) { return null; }
+}
+const icon = (name, cls = 'w-5 h-5') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${STROKE}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_SET[name] || ''}</svg>`;
+
+/* ---- initTheme ---- */
+function applyTheme() {
+  const t = resolve(S.themeId), m = mode(), c = t.modes[m] || BASE.modes[m];
+  const map = { surface:'--surface', surface2:'--surface2', ink:'--ink', muted:'--muted', accent:'--accent', accentHover:'--accent-hover', accentInk:'--accent-ink', line:'--line' };
+  for (const k in map) root.style.setProperty(map[k], c[k] || BASE.modes[m][k]);
+  root.style.setProperty('--radius', t.radius);
+  root.style.setProperty('--font-heading', t.fonts.heading || t.fonts.body);
+  root.style.setProperty('--font-body', t.fonts.body);
+  root.style.setProperty('--font-mono', t.fonts.mono || t.fonts.body);
+  root.style.colorScheme = m; root.dataset.mode = m;
+  const url = t.fonts.googleFonts;
+  let link = $('#theme-fonts');
+  if (typeof url === 'string' && url.startsWith('https://fonts.googleapis.com/')) {
+    if (!link) { link = document.createElement('link'); link.id = 'theme-fonts'; link.rel = 'stylesheet'; document.head.appendChild(link); }
+    if (link.href !== url) link.href = url;
+  } else if (link) link.remove();
+  STROKE = Number(t.iconStroke) || 1.75;
+  ICON_SET = {}; for (const k in ICONS) ICON_SET[k] = cleanIcon((t.icons && t.icons[k]) || ICONS[k]) || ICONS[k];
+  document.querySelectorAll('[data-icon]').forEach(el => el.innerHTML = icon(el.dataset.icon));
+  $('[data-mode-icon]').innerHTML = icon(m === 'dark' ? 'sun' : 'moon');
+  render(); renderThemes();
+}
+
+/* ---- initTodos ---- */
+const left = () => S.todos.filter(t => !t.done).length;
+function render() {
+  const f = S.filter, items = S.todos.filter(t => f === 'all' || (f === 'active' ? !t.done : t.done));
+  $('#count').textContent = left() + ' left';
+  $('#filters').innerHTML = ['all','active','done'].map(k => `<button role="tab" aria-selected="${f===k}" data-filter="${k}" class="px-3 py-1.5 text-sm rounded-theme capitalize ${f===k?'bg-accent text-accentInk':'hover:bg-surface2 border border-line'}">${k}</button>`).join('');
+  $('#list').innerHTML = items.length ? items.map(t => `
+    <li data-id="${t.id}" class="rise flex items-center gap-3 px-4 py-3 bg-surface">
+      <button data-action="toggle" aria-pressed="${t.done}" aria-label="Mark ${esc(t.text)} ${t.done?'not done':'done'}" class="shrink-0 text-accent">${icon(t.done ? 'boxChecked' : 'box', 'w-6 h-6')}</button>
+      ${editingId === t.id ? `<input data-role="edit" value="${esc(t.text)}" class="flex-1 min-w-0 px-2 py-1 rounded-theme bg-surface2 border border-line" aria-label="Edit task">`
+        : `<span data-action="edit" class="flex-1 min-w-0 break-words cursor-text ${t.done?'done-text':''}">${esc(t.text)}</span>`}
+      <button data-action="edit" class="p-1.5 text-muted hover:text-ink" aria-label="Edit task">${icon('edit','w-4 h-4')}</button>
+      <button data-action="delete" class="p-1.5 text-muted hover:text-ink" aria-label="Delete task">${icon('trash','w-4 h-4')}</button>
+    </li>`).join('') : `<li class="px-4 py-10 text-center text-muted bg-surface">Nothing here. Add your first task above.</li>`;
+  const ed = $('[data-role=edit]'); if (ed) { ed.focus(); ed.setSelectionRange(ed.value.length, ed.value.length); }
+}
+function addTask() {
+  const i = $('#new-task'), v = i.value.trim(); if (!v) return;
+  S.todos.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5), text: v, done: false });
+  i.value = ''; save(); render();
+}
+function initTodos() {
+  $('#today').textContent = new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+  $('#new-task').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+  $('#filters').addEventListener('click', e => { const b = e.target.closest('[data-filter]'); if (b) { S.filter = b.dataset.filter; save(); render(); } });
+  const list = $('#list');
+  list.addEventListener('click', e => {
+    const b = e.target.closest('[data-action]'), li = e.target.closest('li[data-id]'); if (!b || !li) return;
+    const t = S.todos.find(x => x.id === li.dataset.id); if (!t) return;
+    if (b.dataset.action === 'toggle') t.done = !t.done;
+    if (b.dataset.action === 'delete') S.todos = S.todos.filter(x => x !== t);
+    if (b.dataset.action === 'edit') editingId = t.id;
+    save(); render();
+  });
+  const commit = (el, ok) => { const li = el.closest('li'), t = S.todos.find(x => x.id === li.dataset.id); if (ok && t && el.value.trim()) t.text = el.value.trim(); editingId = null; save(); render(); };
+  list.addEventListener('keydown', e => { if (e.target.dataset.role !== 'edit') return; if (e.key === 'Enter') commit(e.target, true); if (e.key === 'Escape') commit(e.target, false); });
+  list.addEventListener('focusout', e => { if (e.target.dataset.role === 'edit' && editingId) commit(e.target, true); });
+}
+
+/* ---- initThemeStudio ---- */
+function status(msg, bad) { const s = $('#theme-status'); s.textContent = msg; s.style.color = bad ? 'var(--ink)' : 'var(--muted)'; s.style.fontWeight = bad ? '600' : '400'; }
+function renderThemes() {
+  $('#theme-list').innerHTML = allThemes().map(t => {
+    const custom = S.custom.some(c => c.id === t.id), cur = t.id === S.themeId;
+    return `<li class="flex items-center gap-2"><button data-theme="${esc(t.id)}" aria-pressed="${cur}" class="flex-1 text-left px-4 py-3 rounded-theme border ${cur?'border-accent bg-surface2':'border-line hover:bg-surface2'}"><span class="font-heading font-bold">${esc(t.name)}</span>${cur?' <span class="font-mono text-xs text-muted">· active</span>':''}<span class="block text-xs text-muted">${esc(t.description || '')}</span></button>${custom ? `<button data-remove="${esc(t.id)}" class="p-2 rounded-theme border border-line hover:bg-surface2" aria-label="Remove ${esc(t.name)}">${icon('trashSmall','w-4 h-4')}</button>` : ''}</li>`;
+  }).join('');
+}
+const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+function validate(t) {
+  if (!isObj(t)) throw new Error('Each theme must be an object.');
+  if (!t.name || typeof t.name !== 'string') throw new Error('Theme needs a "name".');
+  const out = { id: slug(t.id || t.name), name: t.name.slice(0, 40), description: String(t.description || '').slice(0, 80) };
+  if (!out.id) throw new Error('Theme needs a valid id or name.');
+  if (BUILTIN.some(b => b.id === out.id)) throw new Error('"' + out.id + '" is a built-in id; choose another.');
+  if (t.fonts) { if (!isObj(t.fonts)) throw new Error('"fonts" must be an object.'); out.fonts = {}; ['heading','body','mono','googleFonts'].forEach(k => { if (t.fonts[k] != null) out.fonts[k] = String(t.fonts[k]).replace(/[;{}<>]/g, ''); }); }
+  if (t.radius != null) out.radius = String(t.radius).replace(/[;{}<>]/g, '');
+  if (t.iconStroke != null) out.iconStroke = Math.min(4, Math.max(.5, Number(t.iconStroke) || 1.75));
+  if (t.icons) { if (!isObj(t.icons)) throw new Error('"icons" must be an object.'); out.icons = {}; for (const k in t.icons) { if (!(k in ICONS)) continue; const c = cleanIcon(String(t.icons[k])); if (c == null) throw new Error('Icon "' + k + '" is not valid SVG.'); out.icons[k] = c; } }
+  if (t.modes) { if (!isObj(t.modes)) throw new Error('"modes" must be an object.'); out.modes = {}; ['light','dark'].forEach(m => { if (!t.modes[m]) return; out.modes[m] = {}; for (const k in BASE.modes[m]) if (t.modes[m][k] != null) out.modes[m][k] = String(t.modes[m][k]).replace(/[;{}<>]/g, ''); }); }
+  return out;
+}
+function parseTheme(text) {
+  const src = text.trim(); if (!src) throw new Error('Nothing to install. Paste a theme first.');
+  let data;
+  try { data = JSON.parse(src); }
+  catch (e) { if (!window.jsyaml) throw new Error('Invalid JSON (YAML parser unavailable).'); try { data = jsyaml.load(src); } catch (y) { throw new Error('Could not parse as JSON or YAML: ' + y.message.split('\n')[0]); } }
+  return (Array.isArray(data) ? data : data && data.themes ? data.themes : [data]).map(validate);
+}
+function install(text) {
+  try {
+    const themes = parseTheme(text);
+    themes.forEach(t => { S.custom = S.custom.filter(c => c.id !== t.id).concat(t); });
+    S.themeId = themes[0].id; save(); applyTheme();
+    status('Installed ' + themes.map(t => t.name).join(', ') + '.');
+  } catch (e) { status(e.message, true); }
+}
+function initThemeStudio() {
+  const studio = $('#theme-studio');
+  const toggle = open => { const o = open ?? studio.classList.contains('translate-x-full'); studio.classList.toggle('translate-x-full', !o); studio.setAttribute('aria-hidden', String(!o)); document.querySelectorAll('[aria-controls=theme-studio]').forEach(b => b.setAttribute('aria-expanded', String(o))); };
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-action],[data-theme],[data-remove]'); if (!b) return;
+    const a = b.dataset.action;
+    if (a === 'add') addTask();
+    if (a === 'clear-done') { S.todos = S.todos.filter(t => !t.done); save(); render(); }
+    if (a === 'toggle-mode') { S.mode = mode() === 'dark' ? 'light' : 'dark'; save(); applyTheme(); }
+    if (a === 'toggle-studio') toggle();
+    if (a === 'install') install($('#theme-input').value);
+    if (a === 'template') { $('#theme-input').value = JSON.stringify(TEMPLATE, null, 2); status('Template loaded. Edit it, then press Install.'); }
+    if (b.dataset.theme) { S.themeId = b.dataset.theme; save(); applyTheme(); }
+    if (b.dataset.remove) { S.custom = S.custom.filter(c => c.id !== b.dataset.remove); if (S.themeId === b.dataset.remove) S.themeId = 'mono'; save(); applyTheme(); status('Theme removed.'); }
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !studio.classList.contains('translate-x-full')) toggle(false); });
+  $('#theme-file').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader(); r.onload = () => { $('#theme-input').value = r.result; install(r.result); }; r.onerror = () => status('Could not read that file.', true); r.readAsText(f); e.target.value = '';
+  });
+}
+
+load();
+if (!allThemes().some(t => t.id === S.themeId)) S.themeId = 'mono';
+initTodos(); initThemeStudio(); applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (!S.mode) applyTheme(); });
+})();
+</script>
+</body>
+</html>
