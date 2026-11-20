@@ -1,0 +1,183 @@
+{
+  "themes": [
+    {
+      "id": "argon",
+      "name": "Argon",
+      "description": "Glowing cyan plasma on deep slate",
+      "fonts": {
+        "heading": "'Orbitron', sans-serif",
+        "body": "'Inter', sans-serif",
+        "mono": "'JetBrains Mono', monospace",
+        "googleFonts": "https://fonts.googleapis.com/css2?family=Inter&family=JetBrains+Mono&family=Orbitron:wght@700&display=swap"
+      },
+      "radius": "0.75rem",
+      "iconStroke": 2,
+      "modes": {
+        "light": {
+          "surface": "#F0F4F8",
+          "surface2": "#E2E8F0",
+          "ink": "#0F172A",
+          "muted": "#475569",
+          "accent": "#0E7490",
+          "accentHover": "#155E75",
+          "accentInk": "#FFFFFF",
+          "line": "rgba(15,23,42,0.1)"
+        },
+        "dark": {
+          "surface": "#0B1120",
+          "surface2": "#151E32",
+          "ink": "#E2E8F0",
+          "muted": "#94A3B8",
+          "accent": "#22D3EE",
+          "accentHover": "#67E8F9",
+          "accentInk": "#082F49",
+          "line": "rgba(226,232,240,0.1)"
+        }
+      }
+    },
+    {
+      "id": "peacock",
+      "name": "Peacock",
+      "description": "Rich teal and emerald elegance",
+      "fonts": {
+        "heading": "'Playfair Display', serif",
+        "body": "'Lora', serif",
+        "mono": "'Fira Code', monospace",
+        "googleFonts": "https://fonts.googleapis.com/css2?family=Fira+Code&family=Lora&family=Playfair+Display:wght@700&display=swap"
+      },
+      "radius": "1rem",
+      "iconStroke": 1.5,
+      "modes": {
+        "light": {
+          "surface": "#F0FDFA",
+          "surface2": "#CCFBF1",
+          "ink": "#042F2E",
+          "muted": "#0F766E",
+          "accent": "#0F766E",
+          "accentHover": "#115E59",
+          "accentInk": "#FFFFFF",
+          "line": "rgba(4,47,46,0.15)"
+        },
+        "dark": {
+          "surface": "#042F2E",
+          "surface2": "#115E59",
+          "ink": "#F0FDFA",
+          "muted": "#5EEAD4",
+          "accent": "#2DD4BF",
+          "accentHover": "#5EEAD4",
+          "accentInk": "#042F2E",
+          "line": "rgba(240,253,250,0.15)"
+        }
+      }
+    },
+    {
+      "id": "darkmatter",
+      "name": "Dark Matter",
+      "description": "The invisible weight of the void",
+      "fonts": {
+        "heading": "'Space Grotesk', sans-serif",
+        "body": "'Space Grotesk', sans-serif",
+        "mono": "'Space Mono', monospace",
+        "googleFonts": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Space+Mono&display=swap"
+      },
+      "radius": "0.25rem",
+      "iconStroke": 1.75,
+      "icons": {
+        "box": "<rect x='4' y='4' width='16' height='16' rx='2'/>",
+        "boxChecked": "<rect x='4' y='4' width='16' height='16' rx='2'/><path d='M8 12l3 3 5-5'/>"
+      },
+      "modes": {
+        "light": {
+          "surface": "#FAFAFA",
+          "surface2": "#F4F4F5",
+          "ink": "#18181B",
+          "muted": "#71717A",
+          "accent": "#3F3F46",
+          "accentHover": "#27272A",
+          "accentInk": "#FFFFFF",
+          "line": "rgba(24,24,27,0.1)"
+        },
+        "dark": {
+          "surface": "#09090B",
+          "surface2": "#18181B",
+          "ink": "#FAFAFA",
+          "muted": "#A1A1AA",
+          "accent": "#A855F7",
+          "accentHover": "#C084FC",
+          "accentInk": "#09090B",
+          "line": "rgba(250,250,250,0.1)"
+        }
+      }
+    },
+    {
+      "id": "potassium",
+      "name": "Potassium",
+      "description": "Lilac flame test warmth",
+      "fonts": {
+        "heading": "'Outfit', sans-serif",
+        "body": "'Figtree', sans-serif",
+        "mono": "'Roboto Mono', monospace",
+        "googleFonts": "https://fonts.googleapis.com/css2?family=Figtree&family=Outfit:wght@700&family=Roboto+Mono&display=swap"
+      },
+      "radius": "1.5rem",
+      "iconStroke": 2,
+      "modes": {
+        "light": {
+          "surface": "#FDF4FF",
+          "surface2": "#FAE8FF",
+          "ink": "#3B0764",
+          "muted": "#86198F",
+          "accent": "#7E22CE",
+          "accentHover": "#6B21A8",
+          "accentInk": "#FFFFFF",
+          "line": "rgba(59,7,100,0.15)"
+        },
+        "dark": {
+          "surface": "#1E1025",
+          "surface2": "#2D1B36",
+          "ink": "#F5D0FE",
+          "muted": "#E879F9",
+          "accent": "#D946EF",
+          "accentHover": "#E879F9",
+          "accentInk": "#1E1025",
+          "line": "rgba(245,208,254,0.15)"
+        }
+      }
+    },
+    {
+      "id": "supernovae",
+      "name": "Supernovae",
+      "description": "Stellar explosion of gold on cosmic void",
+      "fonts": {
+        "heading": "'Cinzel', serif",
+        "body": "'Inter', sans-serif",
+        "mono": "'Fira Code', monospace",
+        "googleFonts": "https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Fira+Code&family=Inter&display=swap"
+      },
+      "radius": "0.5rem",
+      "iconStroke": 1.5,
+      "modes": {
+        "light": {
+          "surface": "#FFFBEB",
+          "surface2": "#FEF3C7",
+          "ink": "#451A03",
+          "muted": "#92400E",
+          "accent": "#B45309",
+          "accentHover": "#92400E",
+          "accentInk": "#FFFFFF",
+          "line": "rgba(69,26,3,0.15)"
+        },
+        "dark": {
+          "surface": "#0F172A",
+          "surface2": "#1E293B",
+          "ink": "#FEF3C7",
+          "muted": "#FCD34D",
+          "accent": "#F59E0B",
+          "accentHover": "#FBBF24",
+          "accentInk": "#0F172A",
+          "line": "rgba(254,243,199,0.15)"
+        }
+      }
+    }
+  ]
+}
